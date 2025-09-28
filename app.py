@@ -3,7 +3,6 @@ import logging
 import json
 
 from flask import Flask, request, render_template
-from process_image import store_img_metadata_as_json
 
 app = Flask(__name__, template_folder="frontend", static_folder="frontend", static_url_path="" )
 app.logger.setLevel(logging.DEBUG) 
