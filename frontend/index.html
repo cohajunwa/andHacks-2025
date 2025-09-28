@@ -61,6 +61,36 @@
             <div class="u-layout-col">
               <div class="u-container-align-center u-container-style u-layout-cell u-size-30 u-layout-cell-1">
                 <div class="u-border-2 u-border-grey-75 u-container-layout u-container-layout-1"><span class="u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-icon-1"><img src="images/44413-1fc13e72.png" alt=""></span>
+                  <video id="video" autoplay playsinline></video>
+      <button id="snap">Take Photo</button>
+      <canvas id="canvas"></canvas>
+
+      <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const snap = document.getElementById("snap");
+        const context = canvas.getContext("2d");
+
+        // Ask for camera access
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => (video.srcObject = stream))
+          .catch((err) => console.error("Error accessing camera: ", err));
+
+        // Capture frame
+        snap.addEventListener("click", () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Convert to blob for sending to Flask
+          canvas.toBlob((blob) => {
+            const formData = new FormData();
+            formData.append("photo", blob, "photo.png");
+            fetch("/upload", { method: "POST", body: formData });
+          }, "image/png");
+        });
+      </script>
                 </div>
               </div>
               <div class="u-container-style u-layout-cell u-size-30 u-layout-cell-2">
