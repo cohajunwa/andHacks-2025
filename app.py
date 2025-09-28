@@ -1,12 +1,17 @@
 import os
 import logging
+import json
 
 from flask import Flask, request, render_template
-from process_image import process_img, extract_exif_data_from_img
+from process_image import store_img_metadata_as_json
 
 app = Flask(__name__, template_folder="frontend", static_folder="frontend", static_url_path="" )
 app.logger.setLevel(logging.DEBUG) 
+
+
 UPLOAD_FOLDER = "IMAGES/"
+DATA_DIR = 'DATA/'
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/", methods=["GET"])
@@ -26,11 +31,25 @@ def upload():
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    result = process_img(file_path)
+    file_data = {
+        'id': request.form["id"],
+        'timestamp': request.form["timestamp"]
+    }
 
-    app.logger.warning(extract_exif_data_from_img(file_path))
+    store_img_metadata_as_json(file_data['id'], file_data)
 
-    return {"status": "ok", "result": result}
+    return {"status": "ok"}
+
+def store_img_metadata_as_json(id: str, img_metadata: dict):
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    # TODO: Add error handling
+    json_data = json.dumps(img_metadata)
+
+    save_file = os.path.join(DATA_DIR, f"{id}.json")
+
+    with open(save_file, "w") as file:
+        json.dump(json_data, file)
 
 
 
