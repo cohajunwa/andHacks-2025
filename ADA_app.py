@@ -7,6 +7,7 @@ from shapely.geometry import Point
 
 cvs_loc = "locations.csv"   
 # Add your Mapbox token here (you can get one from https://account.mapbox.com/access-tokens/)
+mapbox_token = "INSERT_TOKEN"
 
 # Initialize the Dash app
 app = Dash(__name__)
@@ -149,3 +150,4 @@ def update_image(clickData):
 
 # Run the app
 if __name__ == "__main__":
+    app.run(debug=True, port=8052)
