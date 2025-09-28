@@ -65,11 +65,11 @@ def create_map(gdf):
     fig.update_traces(
         hovertemplate=(
             "<b>%{hovertext}</b><br>"
-            # "<i>Waste Type:</i> %{customdata[0]}<br>"
-            "<i>local_time:</i> %{customdata[1]}<br>"
+            "<i>Timestamp (Local Time):</i> %{customdata[1]}<br>"
+            "<i>Decription:</i> %{customdata[2]}<br>"
             "<extra></extra>"
         ),
-        customdata=gdf_filtered[[ 'id', 'local_time']]
+        customdata=gdf_filtered[[ 'id', 'local_time', 'description']]
     )
 
     # Update layout to use the Mapbox token and show street lines

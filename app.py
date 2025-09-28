@@ -61,6 +61,8 @@ def store_img_metadata_as_json(id: str, request_form_data: dict):
     if "timestamp" in request_form_data and request_form_data["timestamp"] != "null":
         img_metadata["timestamp"] = int(request_form_data["timestamp"])
         img_metadata["local_time"] = process_timestamp(img_metadata["timestamp"])
+    if "description" in request_form_data and request_form_data["description"] != "null":
+        img_metadata["description"] = request_form_data["description"] 
 
     save_file = os.path.join(DATA_DIR, f"{id}.json")
 

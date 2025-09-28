@@ -186,63 +186,90 @@
       <div class="canvas-container">
         <canvas id="canvas"></canvas>
       </div>
-      
+      <div class="form-popup" id="userForm">
+  <form action="/action_page.php" class="form-container">
+    <h1>Enter Photo Details</h1>
+
+    <label for="description"><b>Describe the photo</b></label>
+    <input type="text" id="description" placeholder="Quick description of the type of waste" name="description" required>
+
+    <button type="submit" class="btn">Submit Photo</button>
+    <button type="button" class="btn cancel" onclick="closeForm()">Close</button>
+  </form>
+</div>
 
                   <script>
-                    let latitude = null;
-                    let longitude = null;
+  let latitude = null;
+  let longitude = null;
+  let photoBlob = null;  // temporary storage for captured photo
+  let photoId = null;
+  let timestamp = null;
 
-                    // Ask for camera access
-                    navigator.mediaDevices
-                      .getUserMedia({ video: true })
-                      .then((stream) => (video.srcObject = stream))
-                      .catch((err) =>
-                        console.error("Error accessing camera: ", err)
-                      );
+  // Ask for camera access
+  const video = document.getElementById("video");
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => (video.srcObject = stream))
+    .catch((err) => console.error("Error accessing camera: ", err));
 
-                    // Capture frame
-                    snap.addEventListener("click", () => {
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition((position) => {
-                          latitude = position.coords.latitude;
-                          longitude = position.coords.longitude;
-                        });
-                      }
+  // When "Take Photo" is clicked
+  document.getElementById("snap").addEventListener("click", () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+      });
+    }
 
-                      sendPhotoData(longitude, latitude);
-                    });
+    // Capture frame from video
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    function sendPhotoData(longitude, latitude) {
-                      const video = document.getElementById("video");
-                      const canvas = document.getElementById("canvas");
-                      const snap = document.getElementById("snap");
-                      const context = canvas.getContext("2d");
+    // Save to blob (don’t send yet)
+    timestamp = Date.now();
+    photoId = timestamp + Math.random();
+    canvas.toBlob((blob) => {
+      photoBlob = blob;
+      openForm();  // now open the form for description
+    }, "image/jpeg");
+  });
 
-                      canvas.width = video.videoWidth;
-                      canvas.height = video.videoHeight;
-                      context.drawImage(
-                        video,
-                        0,
-                        0,
-                        canvas.width,
-                        canvas.height
-                      );
+  // Handle form submission
+  document.querySelector("#userForm form").addEventListener("submit", (event) => {
+    event.preventDefault();  // stop page reload
+    const description = document.getElementById("description").value;
 
-                      const timestamp = Date.now();
-                      const photoId = timestamp + Math.random();
+    if (!photoBlob) {
+      alert("No photo captured yet!");
+      return;
+    }
 
-                      canvas.toBlob((blob) => {
-                        const formData = new FormData();
-                        formData.append("photo", blob, `${photoId}.jpg`);
-                        formData.append("id", photoId);
-                        formData.append("timestamp", timestamp);
-                        formData.append("longitude", longitude);
-                        formData.append("latitude", latitude);
+    const formData = new FormData();
+    formData.append("photo", photoBlob, `${photoId}.jpg`);
+    formData.append("id", photoId);
+    formData.append("timestamp", timestamp);
+    formData.append("longitude", longitude);
+    formData.append("latitude", latitude);
+    formData.append("description", description);
 
-                        fetch("/upload", { method: "POST", body: formData });
-                      }, "image/png");
-                    }
-                  </script>
+    fetch("/upload", { method: "POST", body: formData })
+      .then((res) => res.json())
+      .then((data) => console.log("Upload success:", data))
+      .catch((err) => console.error("Upload error:", err));
+
+    closeForm();  // hide popup after submit
+  });
+
+  function closeForm() {
+    document.getElementById("userForm").style.display = "none";
+  }
+
+  function openForm() {
+    document.getElementById("userForm").style.display = "block";
+  }
+</script>
                 </div>
               </div>
               <div
