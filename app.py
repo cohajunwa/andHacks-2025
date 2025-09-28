@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import datetime
 
 from flask import Flask, request, render_template
 
@@ -8,7 +9,7 @@ app = Flask(__name__, template_folder="frontend", static_folder="frontend", stat
 app.logger.setLevel(logging.DEBUG) 
 
 
-UPLOAD_FOLDER = "IMAGES/"
+UPLOAD_FOLDER = "assets/images"
 DATA_DIR = 'DATA/'
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -35,6 +36,18 @@ def upload():
 
     return {"status": "ok"}
 
+def process_timestamp(timestamp):
+        # Timestamp currently in ms since Unix epoch
+    try:
+        
+        ts_seconds = timestamp / 1000  
+        
+        dt = datetime.datetime.fromtimestamp(ts_seconds) # Gives local time (may want to use UTC in the future)
+        app.logger.warning(dt)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception :
+        return timestamp
+        
 def store_img_metadata_as_json(id: str, request_form_data: dict):
     os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -47,6 +60,7 @@ def store_img_metadata_as_json(id: str, request_form_data: dict):
         img_metadata["longitude"] = float(request_form_data["longitude"])
     if "timestamp" in request_form_data and request_form_data["timestamp"] != "null":
         img_metadata["timestamp"] = int(request_form_data["timestamp"])
+        img_metadata["local_time"] = process_timestamp(img_metadata["timestamp"])
 
     save_file = os.path.join(DATA_DIR, f"{id}.json")
 

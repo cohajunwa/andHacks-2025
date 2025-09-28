@@ -36,6 +36,8 @@ def create_geopandas(data_dir = DATA_DIR):
                     and data['latitude'] != 'null' and data['longitude'] != 'null'):
                     data['geometry'] = Point(data['longitude'], data['latitude'])
                     records.append(data)
+    if not records:
+        return gpd.GeoDataFrame()
     gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     return gdf
 
@@ -48,14 +50,14 @@ def create_map(gdf):
     gdf_filtered = gdf[gdf.geometry.notnull()]
 
     # Create the map using the filtered GeoDataFrame
-    fig = px.scatter_mapbox(
+    fig = px.scatter_map(
         gdf_filtered,
         lat=gdf_filtered.geometry.y,
         lon=gdf_filtered.geometry.x,
         hover_name="id",  
-        hover_data=["id", "timestamp"], 
+        hover_data=["id", "local_time"], 
         zoom=6,  # updated zoom
-        center={"lat": 14.5, "lon": -86.0}, 
+        center={"lat": 37.4316, "lon": -78.6569},
         height=600
     )
 
@@ -63,12 +65,11 @@ def create_map(gdf):
     fig.update_traces(
         hovertemplate=(
             "<b>%{hovertext}</b><br>"
-            "<i>Waste Type:</i> %{customdata[0]}<br>"
-            "<i>Date:</i> %{customdata[1]}<br>"
-            "<i>Location:</i> %{customdata[2]}<br>"
+            # "<i>Waste Type:</i> %{customdata[0]}<br>"
+            "<i>local_time:</i> %{customdata[1]}<br>"
             "<extra></extra>"
         ),
-        customdata=gdf_filtered[['id', 'timestamp']]
+        customdata=gdf_filtered[[ 'id', 'local_time']]
     )
 
     # Update layout to use the Mapbox token and show street lines
@@ -77,7 +78,8 @@ def create_map(gdf):
         mapbox_accesstoken=mapbox_token,
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         mapbox_zoom=6,  # updated zoom
-        mapbox_center={"lat": 14.5, "lon": -86.0}  # updated center
+        mapbox_center={"lat": 37.4316, "lon": -78.6569}
+        # mapbox_center={"lat": 14.5, "lon": -86.0}  # updated center
     )
     
     return fig
@@ -138,10 +140,10 @@ def update_image(clickData):
     clicked_point = clickData['points'][0]
     
 #     # 'customdata[1]' now refers to the image path we passed in customdata
-    image_name = clicked_point['customdata'][3]  # Assuming 'customdata' has the image filename
+    image_name = clicked_point['customdata'][0]  # Assuming 'customdata' has the image filename
     
 #     # Build the src path for the image (Ensure image file is available in assets/images)
-    image_src = f"/assets/images/{image_name}"
+    image_src = f"/assets/images/{image_name}.jpg"
     
 
 #     # Debugging: Print the image path

@@ -233,7 +233,7 @@
 
                       canvas.toBlob((blob) => {
                         const formData = new FormData();
-                        formData.append("photo", blob, `${photoId}.png`);
+                        formData.append("photo", blob, `${photoId}.jpg`);
                         formData.append("id", photoId);
                         formData.append("timestamp", timestamp);
                         formData.append("longitude", longitude);
