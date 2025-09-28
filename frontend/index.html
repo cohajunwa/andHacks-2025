@@ -190,10 +190,8 @@
                   <canvas id="canvas"></canvas>
 
                   <script>
-                    const video = document.getElementById("video");
-                    const canvas = document.getElementById("canvas");
-                    const snap = document.getElementById("snap");
-                    const context = canvas.getContext("2d");
+                    let latitude = null;
+                    let longitude = null;
 
                     // Ask for camera access
                     navigator.mediaDevices
@@ -205,6 +203,22 @@
 
                     // Capture frame
                     snap.addEventListener("click", () => {
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition((position) => {
+                          latitude = position.coords.latitude;
+                          longitude = position.coords.longitude;
+                        });
+                      }
+
+                      sendPhotoData(longitude, latitude);
+                    });
+
+                    function sendPhotoData(longitude, latitude) {
+                      const video = document.getElementById("video");
+                      const canvas = document.getElementById("canvas");
+                      const snap = document.getElementById("snap");
+                      const context = canvas.getContext("2d");
+
                       canvas.width = video.videoWidth;
                       canvas.height = video.videoHeight;
                       context.drawImage(
@@ -223,10 +237,12 @@
                         formData.append("photo", blob, `${photoId}.png`);
                         formData.append("id", photoId);
                         formData.append("timestamp", timestamp);
+                        formData.append("longitude", longitude);
+                        formData.append("latitude", latitude);
 
                         fetch("/upload", { method: "POST", body: formData });
                       }, "image/png");
-                    });
+                    }
                   </script>
                 </div>
               </div>

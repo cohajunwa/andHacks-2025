@@ -31,12 +31,8 @@ def upload():
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    file_data = {
-        'id': request.form["id"],
-        'timestamp': request.form["timestamp"]
-    }
-
-    store_img_metadata_as_json(file_data['id'], file_data)
+    id = request.form["id"]
+    store_img_metadata_as_json(id, request.form)
 
     return {"status": "ok"}
 
