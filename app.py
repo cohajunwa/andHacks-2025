@@ -35,16 +35,23 @@ def upload():
 
     return {"status": "ok"}
 
-def store_img_metadata_as_json(id: str, img_metadata: dict):
+def store_img_metadata_as_json(id: str, request_form_data: dict):
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    # TODO: Add error handling
-    json_data = json.dumps(img_metadata)
+    img_metadata = {}
+    if "id" in request_form_data:
+        img_metadata["id"] = request_form_data["id"]
+    if "latitude" in request_form_data and request_form_data["latitude"] != "null":
+        img_metadata["latitude"] = float(request_form_data["latitude"])
+    if "longitude" in request_form_data and request_form_data["longitude"] != "null":
+        img_metadata["longitude"] = float(request_form_data["longitude"])
+    if "timestamp" in request_form_data and request_form_data["timestamp"] != "null":
+        img_metadata["timestamp"] = int(request_form_data["timestamp"])
 
     save_file = os.path.join(DATA_DIR, f"{id}.json")
 
     with open(save_file, "w") as file:
-        json.dump(json_data, file)
+        json.dump(img_metadata, file)
 
 
 

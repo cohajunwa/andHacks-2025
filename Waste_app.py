@@ -1,31 +1,39 @@
+import os
 import pandas as pd
 import geopandas as gpd
+import json
+
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
 from shapely.geometry import Point
 
-cvs_loc = "locations_2025.csv"   
+IMG_DIR = "IMAGES/"
+DATA_DIR = 'DATA/'
+
 # Add your Mapbox token here (you can get one from https://account.mapbox.com/access-tokens/)
-mapbox_token = "pk.eyJ1IjoiMTRpZGVhcyIsImEiOiJjbTF3dTgydHYwYmplMmluNWRkNG9uZ3pvIn0.H-Ki2xY8djwSDwG6zH5nyQ"
+mapbox_token = "pk.eyJ1Ijoia2FsZWF3ZW43IiwiYSI6ImNtZzJseTN3NDExZWIyaW9qYjFnaWN2aW8ifQ.-LTqVXogMIj6NAryzqhrBQ"
 
 # Initialize the Dash app
 app = Dash(__name__)
 
 # Step 1: Function to load data (including image paths)
-def csv_to_geopandas(file_path):
-    df = pd.read_csv(file_path,encoding='latin1')
-    if 'latitude' not in df.columns or 'longitude' not in df.columns:
-        raise ValueError("CSV must contain 'latitude' and 'longitude' columns.")
-    
-    gdf = gpd.GeoDataFrame(df, 
-                           geometry=[Point(xy) for xy in zip(df['longitude'], df['latitude'])], 
-                           crs="EPSG:4326")
-    
+def create_geopandas(data_dir = DATA_DIR):
+    records = []
+    for filename in os.listdir(data_dir):
+        if filename.endswith(".json"):
+            with open(os.path.join(data_dir, filename)) as f:
+                data = json.load(f)
+
+                if ('latitude' in data and 'longitude' in data 
+                    and data['latitude'] != 'null' and data['longitude'] != 'null'):
+                    data['geometry'] = Point(data['longitude'], data['latitude'])
+                    records.append(data)
+    gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     return gdf
 
 # Load the data
-gdf = csv_to_geopandas(cvs_loc)
+gdf = create_geopandas()
 
 # Create a Plotly map using Mapbox
 def create_map(gdf):
@@ -37,10 +45,10 @@ def create_map(gdf):
         gdf_filtered,
         lat=gdf_filtered.geometry.y,
         lon=gdf_filtered.geometry.x,
-        hover_name="Name",  
-        hover_data=["waste_type", "Date", "Location", "image"],  # updated hover_data
+        hover_name="id",  
+        hover_data=["id", "timestamp"], 
         zoom=6,  # updated zoom
-        center={"lat": 14.5, "lon": -86.0},  # updated center
+        center={"lat": 14.5, "lon": -86.0}, 
         height=600
     )
 
@@ -53,7 +61,7 @@ def create_map(gdf):
             "<i>Location:</i> %{customdata[2]}<br>"
             "<extra></extra>"
         ),
-        customdata=gdf_filtered[['waste_type', 'Date', 'Location', 'image']]
+        customdata=gdf_filtered[['id', 'timestamp']]
     )
 
     # Update layout to use the Mapbox token and show street lines
@@ -105,10 +113,10 @@ app.layout = html.Div(style={'position': 'relative'}, children=[
 )
 def update_map(n):
     # Reload the CSV file each time the interval is triggered
-    gdf = csv_to_geopandas(cvs_loc)
+    gdf = create_geopandas()
     return create_map(gdf)
 
-# Callback to update the image and control its visibility
+# # Callback to update the image and control its visibility
 @app.callback(
     [Output('location-image', 'src'),
      Output('image-container', 'style')],
@@ -116,23 +124,23 @@ def update_map(n):
 )
 def update_image(clickData):
     if clickData is None:
-        # Hide the image if no point is clicked
+#         # Hide the image if no point is clicked
         return "", {'display': 'none'}
     
-    # Get the image filename from the clicked point
+#     # Get the image filename from the clicked point
     clicked_point = clickData['points'][0]
     
-    # 'customdata[1]' now refers to the image path we passed in customdata
+#     # 'customdata[1]' now refers to the image path we passed in customdata
     image_name = clicked_point['customdata'][3]  # Assuming 'customdata' has the image filename
     
-    # Build the src path for the image (Ensure image file is available in assets/images)
+#     # Build the src path for the image (Ensure image file is available in assets/images)
     image_src = f"/assets/images/{image_name}"
     
 
-    # Debugging: Print the image path
+#     # Debugging: Print the image path
     print(image_src)
 
-    # Set the style to make the image visible
+#     # Set the style to make the image visible
     style = {
         'position': 'absolute',
         'top': '20px',
@@ -147,9 +155,9 @@ def update_image(clickData):
         'border': '1px solid #ccc'
     }
     
-    # Return the image path and the style (to show the image)
+#     # Return the image path and the style (to show the image)
     return image_src, style
 
 # Run the app
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(debug=True, port=8052)
