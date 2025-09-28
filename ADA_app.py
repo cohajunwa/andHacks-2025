@@ -7,6 +7,7 @@ from shapely.geometry import Point
 
 cvs_loc = "locations.csv"   
 # Add your Mapbox token here (you can get one from https://account.mapbox.com/access-tokens/)
+mapbox_token = "pk.eyJ1Ijoia2FsZWF3ZW43IiwiYSI6ImNtZzJseTN3NDExZWIyaW9qYjFnaWN2aW8ifQ.-LTqVXogMIj6NAryzqhrBQ"
 
 # Initialize the Dash app
 app = Dash(__name__)
