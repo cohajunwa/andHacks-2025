@@ -7,12 +7,19 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
 from shapely.geometry import Point
+from dotenv import load_dotenv
+
+load_dotenv()
 
 IMG_DIR = "IMAGES/"
 DATA_DIR = 'DATA/'
 
 # Add your Mapbox token here (you can get one from https://account.mapbox.com/access-tokens/)
-mapbox_token = "pk.eyJ1Ijoia2FsZWF3ZW43IiwiYSI6ImNtZzJseTN3NDExZWIyaW9qYjFnaWN2aW8ifQ.-LTqVXogMIj6NAryzqhrBQ"
+# 1) py -m pip install python-dotenv
+# 2) Create a .env file locally
+# 3) Add the following entry: MAPBOX_TOKEN = "Insert token"
+
+mapbox_token = os.getenv("MAPBOX_TOKEN")
 
 # Initialize the Dash app
 app = Dash(__name__)
